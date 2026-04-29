@@ -42,11 +42,9 @@ jobs:
 
       - name: Apply 1000Hz Settings
         run: |
-          # Move into the source directory before running Part 2
           cd openwrt
           [ -e $GITHUB_WORKSPACE/$CONFIG_FILE ] && cp $GITHUB_WORKSPACE/$CONFIG_FILE .config
           chmod +x $GITHUB_WORKSPACE/$DIY_P2_SH
-          # Run the script from INSIDE the openwrt folder so 'find target/linux' works
           $GITHUB_WORKSPACE/$DIY_P2_SH
           make defconfig
 
