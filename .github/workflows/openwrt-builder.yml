@@ -1,10 +1,7 @@
-name: Flint-2-1000Hz-Final
+name: Flint-2-Build
 
 on:
   workflow_dispatch:
-  permissions:
-  contents: write
-  actions: write
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
@@ -15,10 +12,14 @@ env:
 jobs:
   build:
     runs-on: ubuntu-22.04
+    # We moved permissions here, inside the job, where they belong
+    permissions:
+      contents: write
+      actions: write
 
     steps:
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
 
       - name: Initialization
         run: |
@@ -40,44 +41,21 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      - name: Apply Settings & Brute Force Sync
+      - name: Apply 1000Hz Settings
         run: |
           cd openwrt
-          # 1. Clear the deck
-          rm -f .config
-          
-          # 2. Identity Lock: Force MediaTek Filogic / Flint 2
-          echo "CONFIG_TARGET_mediatek=y" > .config
-          echo "CONFIG_TARGET_mediatek_filogic=y" >> .config
-          echo "CONFIG_TARGET_mediatek_filogic_DEVICE_glinet_gl-mt6000=y" >> .config
-          
-          # 3. Append your custom selections
-          [ -e $GITHUB_WORKSPACE/$CONFIG_FILE ] && cat $GITHUB_WORKSPACE/$CONFIG_FILE >> .config
-          
-          # 4. Run the 1000Hz Script
+          [ -e $GITHUB_WORKSPACE/$CONFIG_FILE ] && cp $GITHUB_WORKSPACE/$CONFIG_FILE .config
           chmod +x $GITHUB_WORKSPACE/$DIY_P2_SH
-          $GITHUB_WORKSPACE/$DIY_P2_SH || true
-          
-          # 5. THE BRUTE FORCE: Resolve prompts and ignore warnings
-          export TERM=xterm
-          make defconfig || true
-          
-          # 6. Final 1000Hz Enforcement
-          sed -i '/CONFIG_HZ/d' .config
-          echo "CONFIG_HZ_1000=y" >> .config
-          echo "CONFIG_HZ=1000" >> .config
-          
-          # 7. Move straight to kernel prep
-          make target/linux/clean || true
+          $GITHUB_WORKSPACE/$DIY_P2_SH
+          make defconfig
 
-      - name: Compile
+      - name: Compile Firmware
         run: |
           cd openwrt
-          export TERM=xterm
-          yes "" | make -j$(nproc) IGNORE_ERRORS=m || make -j1 V=s
+          make -j$(nproc) || make -j1 V=s
 
       - name: Upload Firmware
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v4
         with:
-          name: ImmortalWrt_Flint2_1000Hz
+          name: Flint2_1000Hz_Firmware
           path: openwrt/bin/targets/mediatek/filogic/*.bin
