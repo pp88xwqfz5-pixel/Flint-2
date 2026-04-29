@@ -2,6 +2,9 @@ name: Flint-2-1000Hz-Final
 
 on:
   workflow_dispatch:
+  permissions:
+  contents: write
+  actions: write
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
