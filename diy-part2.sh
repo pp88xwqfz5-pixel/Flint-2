@@ -16,7 +16,3 @@ find target/linux/mediatek/ -name "config-6.6*" | xargs -I {} sh -c '
 # 3. THE HEADER STRIKE
 # This makes sure the C-code itself is locked to 1000
 find ./ -name "param.h" -exec sed -i 's/define HZ.*/define HZ 1000/g' {} +
-
-# 4. PRE-CLEAN .CONFIG
-sed -i '/CONFIG_HZ/d' .config || true
-sed -i '/CONFIG_TARGET/d' .config || true
